@@ -1,11 +1,11 @@
 from tkinter import *
 import math
-import time
+import timeit
 
 root = Tk()
 T = Text(root, height=50, width=100)
 T.pack()
-print('hi')
+
 # 50 x 50 grid of rays
 
 # 100 'steps' checked per ray
@@ -32,11 +32,29 @@ class Sphere:
         self.radius = radius
 
     def contains(self, point):
-        return (point.x - self.center.x)**2 + (point.y - self.center.y)**2 + (point.z - self.center.z)**2 < self.radius**2
+
+        deltaz = (point.z - self.center.z) ** 2
+        if deltaz < self.radius**2:
+            deltay = (point.y - self.center.y) ** 2
+            if deltay + deltaz < self.radius**2 :
+                deltax = (point.x - self.center.x) ** 2
+                if deltay + deltax + deltaz < self.radius**2:
+                    return True
+
+        return False
+
+
 
 def cast_ray(coord, steps):
+
+
     global xorientation
     start = Coordinate(coord.x, coord.y, coord.z)
+
+    xstep = xsin + (start.x - perspective_center.x / 50)
+    ystep = ysin + (start.y - perspective_center.y / 50)
+    zstep = xcos - (start.z - perspective_center.z)
+
     proximity = 0
     for n in range(steps):
         for object in objects:
@@ -44,9 +62,10 @@ def cast_ray(coord, steps):
                 return proximity
 
         # because the 'camera' can be located at different coordinates, the offset must be subtracted to get the current ray's location relative to the camera, not to the origin (0,0,0)
-        coord.x += math.sin(xorientation) + (start.x - perspective_center.x/50)
-        coord.y += math.sin(yorientation) + (start.y - perspective_center.y/50)
-        coord.z += math.cos(xorientation) - (start.z - perspective_center.z)
+
+        coord.x += xstep
+        coord.y += ystep
+        coord.z += zstep
 
         #print(perspective_center.x)
     # math.sin(orientation) * (x+perspective_center.x-25)/50 + perspective_center.z/50
@@ -74,7 +93,18 @@ xmove = 0
 ymove = 0
 zmove = 0
 
+global xsin
+global ysin
+global xcos
+global ycos
+xsin = math.sin(xorientation)
+ysin = math.sin(yorientation)
+xcos = math.cos(xorientation)
+ycos = math.cos(yorientation)
+
+
 def update():
+    starttime = timeit.default_timer()
     stringout = ''
 
     #print(orientation)
@@ -91,8 +121,8 @@ def update():
         for x in range(50):
 
             #print(x, y)
-            ray_origin = Coordinate(math.cos(xorientation)*((x - 25) / 50) + perspective_center.x/50, math.cos(yorientation)* -1 * (y - perspective_center.y - 25) / 50, math.sin(xorientation) * (x-25)/50 + perspective_center.z)
-            #print(ray_origin.x, ray_origin.y, ray_origin.z)
+            ray_origin = Coordinate(xcos*((x - 25) / 50) + perspective_center.x/50, ycos * -1 * (y - perspective_center.y - 25) / 50, xsin * (x-25)/50 + perspective_center.z)
+
             collision = cast_ray(ray_origin, 100)
 
             if(collision == None):
@@ -107,7 +137,9 @@ def update():
 
         stringout += '\n'
 
+    stoptime = timeit.default_timer()
 
+    print(stoptime - starttime)
 
     T.delete(1.0, END)
     T.insert(END, stringout)
@@ -171,6 +203,8 @@ def movebackwards():
 
 def lookleft():
     global xorientation
+    global xsin
+    global xcos
     global xmove
     global ymove
     global zmove
@@ -178,10 +212,14 @@ def lookleft():
     ymove = 0
     zmove = 0
     xorientation -= math.pi / 8
+    xsin = math.sin(xorientation)
+    xcos = math.cos(xorientation)
     update()
 
 def lookright():
     global xorientation
+    global xsin
+    global xcos
     global xmove
     global ymove
     global zmove
@@ -189,10 +227,14 @@ def lookright():
     ymove = 0
     zmove = 0
     xorientation += math.pi / 8
+    xsin = math.sin(xorientation)
+    xcos = math.cos(xorientation)
     update()
 
 def lookup():
     global yorientation
+    global ysin
+    global ycos
     global xmove
     global ymove
     global zmove
@@ -200,6 +242,8 @@ def lookup():
     ymove = 0
     zmove = 0
     yorientation += math.pi / 8
+    ysin = math.sin(yorientation)
+    ycos = math.cos(yorientation)
     update()
 
 def lookdown():
@@ -207,10 +251,14 @@ def lookdown():
     global xmove
     global ymove
     global zmove
+    global ysin
+    global ycos
     xmove = 0
     ymove = 0
     zmove = 0
     yorientation -= math.pi / 8
+    ysin = math.sin(yorientation)
+    ycos = math.cos(yorientation)
     update()
 
 panbutton = Button(root, text='Move')
