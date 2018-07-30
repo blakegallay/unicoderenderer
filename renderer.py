@@ -51,15 +51,15 @@ def cast_ray(coord, steps):
     global xorientation
     start = Coordinate(coord.x, coord.y, coord.z)
 
-    xstep = xsin + (start.x - perspective_center.x / 50)
-    ystep = ysin + (start.y - perspective_center.y / 50)
-    zstep = xcos - (start.z - perspective_center.z)
+    xstep = 100 / steps * (xsin + (start.x - perspective_center.x / 50))
+    ystep = 100 / steps * (ysin + (start.y - perspective_center.y / 50))
+    zstep = 100 / steps * (xcos - (start.z - perspective_center.z))
 
     proximity = 0
     for n in range(steps):
         for object in objects:
             if object.contains(coord):
-                return proximity
+                return proximity * (100 / steps)
 
         # because the 'camera' can be located at different coordinates, the offset must be subtracted to get the current ray's location relative to the camera, not to the origin (0,0,0)
 
@@ -123,7 +123,7 @@ def update():
             #print(x, y)
             ray_origin = Coordinate(xcos*((x - 25) / 50) + perspective_center.x/50, ycos * -1 * (y - perspective_center.y - 25) / 50, xsin * (x-25)/50 + perspective_center.z)
 
-            collision = cast_ray(ray_origin, 100)
+            collision = cast_ray(ray_origin, 30)
 
             if(collision == None):
                 stringout += '  '
