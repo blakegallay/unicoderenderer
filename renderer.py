@@ -2,6 +2,7 @@ from tkinter import *
 import math
 import timeit
 
+# Hello?
 root = Tk()
 T = Text(root, height=50, width=100)
 T.pack()
